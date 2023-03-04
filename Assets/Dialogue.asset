@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 553c77fe1d5c47afa07e3e41631d53dc, type: 3}
+  m_Name: Dialogue
+  m_EditorClassIdentifier: 
+  entryGuid: 26c049fd-35c4-4269-bcd0-15c2766b24ec
+  entryNodePosition: {x: 313, y: 306}
+  basicNodeData:
+  - guid: d08d1362-2b13-427f-8b1d-d4c139adeacd
+    text: Hello!
+    position: {x: 463, y: 306}
+    choice: 1
+  - guid: 04fc6283-06e5-4ce0-9ad7-8a92a6bd0136
+    text: aaaaaaaaaaaah
+    position: {x: 1070, y: 237}
+    choice: 2
+  choiceNodeData: []
+  eventNodeData: []
+  focusNodeData: []
+  conditionNodeData:
+  - guid: df7f5b21-a665-4498-b0ed-4d02fd80547b
+    text: 
+    position: {x: 828, y: 306}
+    variableName: test
+  exitNodeData:
+  - guid: 871188c0-0207-4948-b7c5-d3aeb257f97f
+    text: 
+    position: {x: 1460, y: 427}
+  linkData:
+  - outNodeGuid: 26c049fd-35c4-4269-bcd0-15c2766b24ec
+    inNodeGuid: d08d1362-2b13-427f-8b1d-d4c139adeacd
+    portIndex: 0
+  - outNodeGuid: d08d1362-2b13-427f-8b1d-d4c139adeacd
+    inNodeGuid: df7f5b21-a665-4498-b0ed-4d02fd80547b
+    portIndex: 0
+  - outNodeGuid: df7f5b21-a665-4498-b0ed-4d02fd80547b
+    inNodeGuid: 04fc6283-06e5-4ce0-9ad7-8a92a6bd0136
+    portIndex: 0
+  - outNodeGuid: 04fc6283-06e5-4ce0-9ad7-8a92a6bd0136
+    inNodeGuid: 871188c0-0207-4948-b7c5-d3aeb257f97f
+    portIndex: 0
+  - outNodeGuid: df7f5b21-a665-4498-b0ed-4d02fd80547b
+    inNodeGuid: 871188c0-0207-4948-b7c5-d3aeb257f97f
+    portIndex: 1
+  firstTimeOpen: 0
+  intProperties: []
+  stringProperties: []
+  boolProperties:
+  - guid: 36b16a4f-2cea-49e2-96c4-4aaa8b9acaf0
+    propertyName: test
+    propertyValue: 0

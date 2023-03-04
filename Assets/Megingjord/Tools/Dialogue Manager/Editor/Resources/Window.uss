@@ -1,0 +1,9 @@
+﻿:root {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.unity-button {
+    margin-top: 25px;
+}

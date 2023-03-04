@@ -1,0 +1,113 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 553c77fe1d5c47afa07e3e41631d53dc, type: 3}
+  m_Name: Cube Example
+  m_EditorClassIdentifier: 
+  entryGuid: 61c7d674-5431-456e-b43b-e8cbc285e0a7
+  entryNodePosition: {x: 29, y: 392}
+  basicNodeData:
+  - guid: 0443195a-88d2-4107-983c-227bb15d26da
+    text: Hi! I heard you like cubes!
+    position: {x: 161, y: 209}
+    choice: 2
+  - guid: dd1bfab4-021a-4ef1-8895-11b318b555f8
+    text: There's current {CUBE_COUNT} cubes in the world!
+    position: {x: 405, y: 392}
+    choice: 2
+  - guid: e368475e-a580-400a-bda6-b92f106c6842
+    text: Anything else?
+    position: {x: 1522, y: 442}
+    choice: 2
+  choiceNodeData:
+  - guid: b80ca9c7-88d4-48b8-af54-0b32e3806397
+    text: Would you like to do something cube related?
+    position: {x: 947, y: 423}
+    choices:
+      m_Keys: 000000000100000002000000
+      m_Values:
+      - Spawn a cube!
+      - Destroy all cubes!
+      - Actually, I should go
+  - guid: bb89180c-b73e-44df-bc66-ebe8bf5f1f60
+    text: 
+    position: {x: 1595, y: 824}
+    choices:
+      m_Keys: 0000000001000000
+      m_Values:
+      - Yep!
+      - Nope!
+  eventNodeData:
+  - guid: 8239047a-bde1-461e-b9c8-77014745d5e0
+    text: 
+    position: {x: 1353, y: 370}
+    eventName: spawn
+  - guid: 405bf6f8-0650-4676-85d8-ba1809efcc06
+    text: 
+    position: {x: 1353, y: 497}
+    eventName: destroy
+  focusNodeData:
+  - guid: 9abaf3d8-810f-4f4f-8d1f-27a160ab028c
+    text: 
+    position: {x: 752, y: 293}
+    choice: 0
+  conditionNodeData: []
+  exitNodeData:
+  - guid: a7e1bcba-11bb-4401-a3ba-a9b8b22489c7
+    text: 
+    position: {x: 1886, y: 851}
+  - guid: dd6d318d-553a-4c23-a90d-d0bbda4bd34a
+    text: 
+    position: {x: 1252, y: 608}
+  linkData:
+  - outNodeGuid: 61c7d674-5431-456e-b43b-e8cbc285e0a7
+    inNodeGuid: 0443195a-88d2-4107-983c-227bb15d26da
+    portIndex: 0
+  - outNodeGuid: b80ca9c7-88d4-48b8-af54-0b32e3806397
+    inNodeGuid: 8239047a-bde1-461e-b9c8-77014745d5e0
+    portIndex: 0
+  - outNodeGuid: b80ca9c7-88d4-48b8-af54-0b32e3806397
+    inNodeGuid: 405bf6f8-0650-4676-85d8-ba1809efcc06
+    portIndex: 1
+  - outNodeGuid: 0443195a-88d2-4107-983c-227bb15d26da
+    inNodeGuid: dd1bfab4-021a-4ef1-8895-11b318b555f8
+    portIndex: 0
+  - outNodeGuid: dd1bfab4-021a-4ef1-8895-11b318b555f8
+    inNodeGuid: 9abaf3d8-810f-4f4f-8d1f-27a160ab028c
+    portIndex: 0
+  - outNodeGuid: 9abaf3d8-810f-4f4f-8d1f-27a160ab028c
+    inNodeGuid: b80ca9c7-88d4-48b8-af54-0b32e3806397
+    portIndex: 0
+  - outNodeGuid: 8239047a-bde1-461e-b9c8-77014745d5e0
+    inNodeGuid: e368475e-a580-400a-bda6-b92f106c6842
+    portIndex: 0
+  - outNodeGuid: 405bf6f8-0650-4676-85d8-ba1809efcc06
+    inNodeGuid: e368475e-a580-400a-bda6-b92f106c6842
+    portIndex: 0
+  - outNodeGuid: e368475e-a580-400a-bda6-b92f106c6842
+    inNodeGuid: bb89180c-b73e-44df-bc66-ebe8bf5f1f60
+    portIndex: 0
+  - outNodeGuid: bb89180c-b73e-44df-bc66-ebe8bf5f1f60
+    inNodeGuid: a7e1bcba-11bb-4401-a3ba-a9b8b22489c7
+    portIndex: 1
+  - outNodeGuid: bb89180c-b73e-44df-bc66-ebe8bf5f1f60
+    inNodeGuid: dd1bfab4-021a-4ef1-8895-11b318b555f8
+    portIndex: 0
+  - outNodeGuid: b80ca9c7-88d4-48b8-af54-0b32e3806397
+    inNodeGuid: dd6d318d-553a-4c23-a90d-d0bbda4bd34a
+    portIndex: 2
+  firstTimeOpen: 0
+  intProperties:
+  - guid: 6c5522e3-ed13-41dc-8513-251178d16df1
+    propertyName: CUBE_COUNT
+    propertyValue: 0
+  stringProperties: []
+  boolProperties: []
