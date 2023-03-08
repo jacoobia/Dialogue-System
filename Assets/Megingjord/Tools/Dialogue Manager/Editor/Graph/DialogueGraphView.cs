@@ -366,7 +366,6 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             foreach (var element in elements) {
                 switch (element) {
                     case DialogueNode node:
-                        node.guid = Guid.NewGuid().ToString();
                         DialogueGraphIO.SaveNode(ref data, node);
                         break;
                     case Edge edge:

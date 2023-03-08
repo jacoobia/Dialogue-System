@@ -87,15 +87,15 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
         /// <param name="dialogueData"></param>
         /// <param name="edge"></param>
         public static void SaveLink(ref DialogueData dialogueData, Edge edge) {
-            var outputNode = edge.output.node as DialogueNode;
-            var inputNode = edge.input.node as DialogueNode;
-
+            if (edge.output.node is not DialogueNode outputNode 
+                || edge.input.node is not DialogueNode inputNode) return;
+            
             var index = GetOutPortIndex(outputNode, edge);
-
+            
             dialogueData.linkData.Add(new NodeLinkData {
-                outNodeGuid = outputNode!.guid,
-                portIndex = index,
-                inNodeGuid = inputNode!.guid
+                outNodeGuid = outputNode.guid,
+                inNodeGuid = inputNode.guid,
+                portIndex = index
             });
         }
 
@@ -207,7 +207,7 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
         public static void LoadGraphDataAdditive(DialogueData data, DialogueGraphView graph) {
             var guidMap = ReassignAndOffset(ref data);
             RemapGuidsForLinks(ref data, guidMap);
-            PopulateGraph(graph, data);
+            PopulateGraph(graph, data, true);
         }
 
         /// <summary>
@@ -217,15 +217,13 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
         /// <param name="map">The GUID map</param>
         private static void RemapGuidsForLinks(ref DialogueData data, IReadOnlyDictionary<string, string> map) {
             foreach (var linkData in data.linkData) {
-                var inGuid = linkData.inNodeGuid;
-                if (map.ContainsKey(inGuid)) {
-                    linkData.inNodeGuid = map[inGuid];
+                var currentIn = linkData.inNodeGuid;
+                if (map.ContainsKey(currentIn)) {
+                    linkData.inNodeGuid = map[currentIn];
                 }
 
-                var outGuid = linkData.outNodeGuid;
-                if (!map.ContainsKey(outGuid)) continue;
-                Debug.Log($"before: {outGuid} after: {map[outGuid]}");
-                linkData.outNodeGuid = map[outGuid];
+                var currentOut = linkData.outNodeGuid;
+                linkData.outNodeGuid = map.ContainsKey(currentOut) ? map[currentOut] : null;
             }
         }
         
@@ -240,147 +238,63 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
             var nodes = data.GetAllNodes();
             foreach (var nodeData in nodes) {
                 var currentGuid = nodeData.guid;
+                if(currentGuid == null || string.IsNullOrEmpty(currentGuid)) continue;
                 var newGuid = Guid.NewGuid().ToString();
                 guidMap.Add(currentGuid, newGuid);
                 nodeData.guid = newGuid;
                 nodeData.position.x += PasteOffsetX;
                 nodeData.position.y += PasteOffsetY;
             }
-
             return guidMap;
         }
-        
+
         /// <summary>
         /// Populate a graph with data
         /// </summary>
         /// <param name="graph">The graph to populate</param>
         /// <param name="data">The data to populate the graph with</param>
-        private static void PopulateGraph(DialogueGraphView graph, DialogueData data) {
-            var entry = new EntryNode(graph) {
-                guid = data.entryGuid
-            };
-            entry.PlaceAt(data.entryNodePosition);
-            graph.AddElement(entry);
+        /// <param name="pasteAction">Is the graph being populated by a paste action</param>
+        private static void PopulateGraph(DialogueGraphView graph, DialogueData data, bool pasteAction = false) {
+            if (!pasteAction) {
+                var entry = new EntryNode(graph) {
+                    guid = data.entryGuid
+                };
+                entry.PlaceAt(data.entryNodePosition);
+                graph.AddElement(entry);
+            }
 
             // Load the basic nodes
-            LoadBasicNodes(data, graph);
-            LoadChoiceNodes(data, graph);
-            LoadFocusNodes(data, graph);
-            LoadConditionNodes(data, graph);
-            LoadExitNodes(data, graph);
-            LoadEventNodes(data, graph);
+            List<DialogueNode> nodes = new();
+            new BasicNodeLoader(graph).Load(ref data.basicNodeData, ref nodes);
+            new FocusNodeLoader(graph).Load(ref data.focusNodeData, ref nodes);
+            new ChoiceNodeLoader(graph).Load(ref data.choiceNodeData, ref nodes);
+            new ConditionNodeLoader(graph).Load(ref data.conditionNodeData, ref nodes);
+            new EventNodeLoader(graph).Load(ref data.eventNodeData, ref nodes);
+            new NodeLoader<ExitNode, ExitNodeData>(graph).Load(ref data.exitNodeData, ref nodes);
             
-            ConnectDialogueNodes(data, graph);
-            LoadProperties(data, graph);
-        }
-        
-        /// <summary>
-        /// Load each of the basic dialogue nodes
-        /// </summary>
-        /// <param name="dialogueData">The data container</param>
-        /// <param name="graph">The graph</param>
-        private static void LoadBasicNodes(DialogueData dialogueData, DialogueGraphView graph) {
-            foreach (var nodeData in dialogueData.basicNodeData) {
-                var tempNode = graph.CreateNode<BasicNode>();
-                tempNode.SetText (nodeData.text);
-                tempNode.guid = nodeData.guid;
-                tempNode.PlaceAt(nodeData.position);
-                graph.AddElement(tempNode);
-                tempNode.SetChoice(nodeData.choice);
-            }
-        }
-
-        /// <summary>
-        /// Load each of the choice dialogue nodes
-        /// </summary>
-        /// <param name="dialogueData">The data container</param>
-        /// <param name="graph">The graph</param>
-        private static void LoadChoiceNodes(DialogueData dialogueData, DialogueGraphView graph) {
-            foreach (var nodeData in dialogueData.choiceNodeData) {
-                var tempNode = graph.CreateNode<ChoiceNode>();
-                tempNode.SetText (nodeData.text);
-                tempNode.guid = nodeData.guid;
-                tempNode.PlaceAt(nodeData.position);
-                foreach (var choice in nodeData.choices) {
-                    tempNode.AddChoice(choice.Key, choice.Value);
+            if (pasteAction) {
+                graph.ClearSelection();
+                foreach (var node in nodes) {
+                    graph.AddToSelection(node);
                 }
+            }
 
-                graph.AddElement(tempNode);
-            }
-        }
-        
-        /// <summary>
-        /// Load each of the event dialogue nodes
-        /// </summary>
-        /// <param name="dialogueData">The data container</param>
-        /// <param name="graph">The graph</param>
-        private static void LoadEventNodes(DialogueData dialogueData, DialogueGraphView graph) {
-            foreach (var nodeData in dialogueData.eventNodeData) {
-                var tempNode = graph.CreateNode<EventNode>();
-                tempNode.guid = nodeData.guid;
-                tempNode.SetEventName(nodeData.eventName);
-                tempNode.PlaceAt(nodeData.position);
-                graph.AddElement(tempNode);
-            }
-        }
-        
-        /// <summary>
-        /// Load each of the exit dialogue nodes
-        /// </summary>
-        /// <param name="dialogueData">The data container</param>
-        /// <param name="graph">The graph</param>
-        private static void LoadExitNodes(DialogueData dialogueData, DialogueGraphView graph) {
-            foreach (var nodeData in dialogueData.exitNodeData) {
-                var tempNode = graph.CreateNode<ExitNode>();
-                tempNode.guid = nodeData.guid;
-                tempNode.PlaceAt(nodeData.position);
-                graph.AddElement(tempNode);
-            }
-        }
-
-        /// <summary>
-        /// Load each of the focus dialogue nodes
-        /// </summary>
-        /// <param name="dialogueData">The data container</param>
-        /// <param name="graph">The graph</param>
-        private static void LoadFocusNodes(DialogueData dialogueData, DialogueGraphView graph) {
-            foreach (var nodeData in dialogueData.focusNodeData) {
-                var tempNode = graph.CreateNode<FocusActorNode>();
-                tempNode.SetText (nodeData.text);
-                tempNode.guid = nodeData.guid;
-                tempNode.PlaceAt(nodeData.position);
-                tempNode.SetChoice(nodeData.choice);
-                graph.AddElement(tempNode);
-            }
-        }
-
-        /// <summary>
-        /// Load each of the condition dialogue nodes
-        /// </summary>
-        /// <param name="dialogueData">The data container</param>
-        /// <param name="graph">The graph</param>
-        private static void LoadConditionNodes(DialogueData dialogueData, DialogueGraphView graph) {
-            foreach (var nodeData in dialogueData.conditionNodeData) {
-                var tempNode = graph.CreateNode<ConditionNode>();
-                tempNode.SetText (nodeData.text);
-                tempNode.guid = nodeData.guid;
-                tempNode.PlaceAt(nodeData.position);
-                tempNode.SetVariableName(nodeData.variableName);
-                graph.AddElement(tempNode);
-            }
+            ConnectDialogueNodes(data, graph, pasteAction);
+            LoadProperties(data, graph);
         }
 
         /// <summary>
         /// Connect the nodes on a graph
         /// </summary>
-        /// <param name="dialogueData">The data container</param>
+        /// <param name="data">The data container</param>
         /// <param name="graph">The graph</param>
-        private static void ConnectDialogueNodes(DialogueData dialogueData, GraphView graph) {
-            foreach (var link in dialogueData.linkData) {
+        /// <param name="select">Should the connections be selected</param>
+        private static void ConnectDialogueNodes(DialogueData data, GraphView graph, bool select) {
+            foreach (var link in data.linkData) {
                 var outNode = GetNode(graph, link.outNodeGuid);
                 var inNode = GetNode(graph, link.inNodeGuid);
 
-                if (inNode == null || outNode == null) return;
+                if (inNode == null || outNode == null) continue;
                 
                 var outPorts = outNode.outputContainer.Query("connector").ToList();
 
@@ -395,7 +309,7 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
                     }
                 }
                     
-                LinkNodesTogether(fromPort, toPort, graph);
+                LinkNodesTogether(fromPort, toPort, graph, select);
             }
         }
 
@@ -428,14 +342,15 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
             var nodes = graph.nodes.ToList().Cast<DialogueNode>().ToList();
             return nodes.FirstOrDefault(dialogueNode => dialogueNode.guid.Equals(guid));
         }
-        
+
         /// <summary>
         /// Forces two ports to be linked together on a graph
         /// </summary>
         /// <param name="outputSocket">The output port</param>
         /// <param name="inputSocket">The input port</param>
         /// <param name="graph">The graph</param>
-        private static void LinkNodesTogether(Port outputSocket, Port inputSocket, VisualElement graph) {
+        /// <param name="select">Should the links be selected</param>
+        private static void LinkNodesTogether(Port outputSocket, Port inputSocket, GraphView graph, bool select) {
             var tempEdge = new Edge {
                 output = outputSocket,
                 input = inputSocket
@@ -443,6 +358,10 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
             tempEdge.input.Connect(tempEdge);
             tempEdge.output.Connect(tempEdge);
             graph.Add(tempEdge);
+            
+            if (select) {
+                graph.AddToSelection(tempEdge);
+            }
         }
 
     }

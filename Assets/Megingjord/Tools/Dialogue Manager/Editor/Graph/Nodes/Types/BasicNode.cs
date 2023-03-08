@@ -5,6 +5,10 @@ using UnityEditor.UIElements;
 using UnityEngine;
 
 namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph.Nodes.Types {
+    /// <summary>
+    /// A basic dialogue node, with focusing, text display
+    /// and soon sprites
+    /// </summary>
     [Node("Basic Dialogue Node")]
     public sealed class BasicNode : DialogueNode {
         

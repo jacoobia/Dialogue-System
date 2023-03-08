@@ -25,9 +25,11 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph.Nodes {
                 _textField = new TextField("") {
                 multiline = true
             };
+                
             _textField.RegisterValueChangedCallback(evt => {
                 text = evt.newValue;
             });
+            
             var label = new Label("Dialogue Text");
             label.AddToClassList("node-label");
             mainContainer.Add(label);
