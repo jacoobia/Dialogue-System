@@ -35,7 +35,7 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
             var window = GetWindow<DialogueEditorWindow>();
             window.titleContent = new GUIContent(Title);
             window.minSize = new Vector2(500, 300);
-            window.LoadGraph(graph, AssetDatabase.GetAssetPath(graph), graph.name);
+            window.LoadGraph(graph, AssetDatabase.GetAssetPath(graph));
             
             return true;
         }
@@ -49,7 +49,7 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
             if (_showMousePosition) _mousePositionString = $"X: {_mousePosition.x} Y: {_mousePosition.y}";
         }
 
-        private void LoadGraph(DialogueData dialogueData, string pathName, string graphName) {
+        private void LoadGraph(DialogueData dialogueData, string pathName) {
             if(graphStyleSheet == null)  
                 graphStyleSheet = Resources.Load<StyleSheet>(GraphStyleSheetName);
             if(_nodeStyleSheet == null)  
@@ -62,7 +62,7 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
             }
             _dialogueData = dialogueData;
             _graphPath = pathName;
-            _graphView = DialogueGraphIO.LoadAsset(dialogueData, graphName);
+            _graphView = DialogueGraphIO.LoadGraphDataInstantiate(dialogueData);
             _graphView.styleSheets.Add(_nodeStyleSheet);
             _graphView.SetWindowReference(this);
             rootVisualElement.Add(_graphView);
@@ -78,7 +78,7 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor {
             var button = new Button(() => {
                 var created = CreateInstance<DialogueData>();
                 var fileName = FileUtils.IndexedFilename("Dialogue");
-                LoadGraph(created, $"Assets/{fileName}.asset", fileName);
+                LoadGraph(created, $"Assets/{fileName}.asset");
             }) {
                 text = "Creat Dialogue"
             };

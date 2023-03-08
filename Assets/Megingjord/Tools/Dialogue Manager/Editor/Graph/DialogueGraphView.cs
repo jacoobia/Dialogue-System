@@ -11,23 +11,25 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static Megingjord.Tools.Dialogue_Manager.PrimitiveUtils;
+using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Vector2 = UnityEngine.Vector2;
 
 namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
     public class DialogueGraphView : GraphView {
+        private static DialogueGraphView _instance;
 
         private const float SearchWindowWidthOffset = 240f;
         private const string WindowName = "Graph Editor";
         private readonly string _graphName;
 
+        private readonly NodeSearchMenu _nodeSearch;
         private readonly List<DialogueProperty> _properties = new();
-
         private DialogueEditorWindow _window;
         private Blackboard _blackboard;
-        
-        private readonly NodeSearchMenu _nodeSearch;
+        private Vector2 _lastRightClicked;
 
         public DialogueGraphView(string graphName) {
+            _instance = this;
             _graphName = graphName;
             _nodeSearch = ScriptableObject.CreateInstance<NodeSearchMenu>();
             _nodeSearch.Init(this);
@@ -43,7 +45,7 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
         }
 
         /// <summary>
-        /// Unsubscribe from all of the events
+        /// Unsubscribe from all of the events and cleanup any memory in use
         /// </summary>
         public void Destruct() {
             canPasteSerializedData -= CanPaste;
@@ -99,8 +101,6 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
         /// <summary>
         /// Builds the blackboard that holds the exposed variables to be used
         /// in external scripts/the API
-        ///
-        /// TODO Finish
         /// </summary>
         private void BuildBlackboard() {
             if(_blackboard != null) ClearBlackboard();
@@ -109,7 +109,7 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             };
 
             _blackboard.Add(new BlackboardSection {title = "Variables"});
-            _blackboard.addItemRequested = AddItemRequested;
+            _blackboard.addItemRequested = ShowAddPropertyContextMenu;
 
             _blackboard.editTextRequested = (_, element, newValue) => {
                 var oldPropertyName = ((BlackboardField) element).text;
@@ -127,7 +127,12 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             Add(_blackboard);
         }
 
-        private void AddItemRequested(Blackboard blackboard) {
+        /// <summary>
+        /// Builds and shows the context menu when a user clicks
+        /// the add or '+' button on the blackboard
+        /// </summary>
+        /// <param name="blackboard"></param>
+        private void ShowAddPropertyContextMenu(Blackboard blackboard) {
             var menu = new GenericMenu();
             menu.AddItem(new GUIContent("Int"), false, () => AddPropertyToBlackboard(new IntProperty()));
             menu.AddItem(new GUIContent("String"), false, () => AddPropertyToBlackboard(new StringProperty()));
@@ -135,6 +140,10 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             menu.ShowAsContext();
         }
 
+        /// <summary>
+        /// Adds a property to the blackboard, type agnostic
+        /// </summary>
+        /// <param name="property"></param>
         private void AddPropertyToBlackboard(DialogueProperty property) {
             if (_properties.Contains(property)) return;
             switch (property) {
@@ -150,6 +159,10 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             }
         }
 
+        /// <summary>
+        /// Adds an integer property tot he blackboard
+        /// </summary>
+        /// <param name="property"></param>
         public void AddIntProperty(IntProperty property) {
             var container = new VisualElement();
             var field = new BlackboardField {text = property.propertyName, typeText = "int"};
@@ -173,6 +186,10 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             _properties.Add(property);
         }
 
+        /// <summary>
+        /// Adds a string property to the blackboard
+        /// </summary>
+        /// <param name="property"></param>
         public void AddStringProperty(StringProperty property) {
             var container = new VisualElement();
             var field = new BlackboardField {text = property.propertyName, typeText = "string"};
@@ -191,6 +208,10 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             _properties.Add(property);
         }
 
+        /// <summary>
+        /// Adds a boolean property to the blackboard
+        /// </summary>
+        /// <param name="property"></param>
         public void AddBoolProperty(BoolProperty property) {
             var container = new VisualElement();
             var field = new BlackboardField {text = property.propertyName, typeText = "bool"};
@@ -204,7 +225,11 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             _blackboard.Add(container);
             _properties.Add(property);
         }
-
+        
+        /// <summary>
+        /// Completely clears the blackboard of all properties
+        /// and removes it
+        /// </summary>
         private void ClearBlackboard() {
             _properties.Clear();
             _blackboard.Clear();
@@ -224,11 +249,12 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
 
         /// <summary>
         /// An override for the context menu that adds the node
-        /// creation menu
+        /// creation menu option to the bottom
         /// </summary>
         /// <param name="event"></param>
         public override void BuildContextualMenu(ContextualMenuPopulateEvent @event) {
             base.BuildContextualMenu(@event);
+            _lastRightClicked = GetMousePosition();
             var mouse = @event.mousePosition;
             if (@event.target is not GraphView) return;
             @event.menu.AppendAction("Create Node", _ => {
@@ -238,26 +264,21 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             @event.menu.AppendSeparator();
         }
 
-        public bool CreateNodeAtMouse(Type type) {
+        /// <summary>
+        /// Creates a node of a given type at the last cached
+        /// mouse position
+        /// </summary>
+        /// <param name="type">The type of node to create</param>
+        /// <returns>Creation result</returns>
+        public bool TryCreateNode(Type type) {
             try {
                 var node = (DialogueNode)Activator.CreateInstance(type, this);
-                node.PlaceAt(GetMousePosition());
+                node.PlaceAt(_lastRightClicked);
                 AddElement(node);
                 return true;
             } catch (Exception) {
                 return false;
             }
-        }
-        
-        /// <summary>
-        /// Creates a new node at the position of the mouse and
-        /// then adds it to the grid view
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        public void CreateNodeAtMouse<T>() where T : DialogueNode {
-            var node = CreateNode<T>();
-            node.PlaceAt(GetMousePosition());
-            AddElement(node);
         }
 
         /// <summary>
@@ -270,10 +291,10 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
         }
 
         /// <summary>
-        /// Links two node ports together
+        /// Links two ports together
         /// </summary>
-        /// <param name="outputSocket"></param>
-        /// <param name="inputSocket"></param>
+        /// <param name="outputSocket">The out port of the output node</param>
+        /// <param name="inputSocket">The in port of the input node</param>
         private void LinkNodesTogether(Port outputSocket, Port inputSocket) {
             var tempEdge = new Edge {
                 output = outputSocket,
@@ -285,7 +306,8 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
         }
 
         /// <summary>
-        /// Adds the entry node and also an example basic node
+        /// Adds an example template of nodes to the graph,
+        /// used for the first time opening a new dialogue graph
         /// </summary>
         public void AddExampleNodes() {
             var entry = new EntryNode(this);
@@ -302,35 +324,43 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             AddElement(example);
             AddElement(exit);
             
-            LinkExampleNodes(entry, example, exit);
-        }
-        
-        /// <summary>
-        /// Links the example nodes together
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <param name="basic"></param>
-        /// <param name="exit"></param>
-        private void LinkExampleNodes(Node entry, Node basic, Node exit) {
             var entryPort = entry.outputContainer[IntegerZero].Q<Port>();
-            var basicOut = basic.outputContainer[IntegerZero].Q<Port>();
-            var basicIn = basic.inputContainer[IntegerZero].Q<Port>();
+            var basicOut = example.outputContainer[IntegerZero].Q<Port>();
+            var basicIn = example.inputContainer[IntegerZero].Q<Port>();
             var exitPort = exit.inputContainer[IntegerZero].Q<Port>();
             
             LinkNodesTogether(entryPort, basicIn);
             LinkNodesTogether(basicOut, exitPort);
         }
 
-        private bool CanPaste(string serializedData) {
+        /// <summary>
+        /// Can the user paste the clipboard data onto the graph?
+        /// TODO Change this to check if it's a parseable graph data object
+        /// </summary>
+        /// <param name="serializedData"></param>
+        /// <returns></returns>
+        private static bool CanPaste(string serializedData) {
             return true;
         }
 
+        /// <summary>
+        /// Deserializes the string payload in the clipboard from a paste
+        /// command, this assumed the data is in a serialized JSON format
+        /// </summary>
+        /// <param name="action">The action description</param>
+        /// <param name="data">The data in the clipboard</param>
         private static void Deserialize(string action, string data) {
             var dataObj = ScriptableObject.CreateInstance<DialogueData>();
-            // todo this needs to deserialize the clipboard and place nodes & edges
-            Debug.Log(data);
+            JsonUtility.FromJsonOverwrite(data, dataObj);
+            DialogueGraphIO.LoadGraphDataAdditive(dataObj, _instance);
         }
 
+        /// <summary>
+        /// Serializes the selected data to JSON on a copy or cut
+        /// command on the graph
+        /// </summary>
+        /// <param name="elements">The graph elements to serialize</param>
+        /// <returns></returns>
         private static string Serialize(IEnumerable<GraphElement> elements) {
             var data = ScriptableObject.CreateInstance<DialogueData>();
             foreach (var element in elements) {
@@ -340,22 +370,34 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
                         DialogueGraphIO.SaveNode(ref data, node);
                         break;
                     case Edge edge:
-                        DialogueGraphIO.SaveConnection(ref data, edge);
+                        DialogueGraphIO.SaveLink(ref data, edge);
                         break;
                 }
             }
-
-            return data.ToString();
+            return JsonUtility.ToJson(data);
         }
 
+        /// <summary>
+        /// Shorthand for getting the mouse position from the window
+        /// </summary>
+        /// <returns>The mouse position including offset</returns>
         private Vector2 GetMousePosition() {
             return _window.GetMousePosition();
         }
 
+        /// <summary>
+        /// An init method to add a reference to the window
+        /// that contains this graph
+        /// </summary>
+        /// <param name="window">The parent window</param>
         public void SetWindowReference(DialogueEditorWindow window) {
             _window = window;
         }
 
+        /// <summary>
+        /// Gets all of the properties currently on a graph
+        /// </summary>
+        /// <returns></returns>
         public List<DialogueProperty> GetProperties() {
             return _properties;
         }

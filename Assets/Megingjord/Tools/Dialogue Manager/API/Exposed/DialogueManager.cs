@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Megingjord.Shared.Helpers;
+using Megingjord.Shared.Reflection;
 using Megingjord.Tools.Dialogue_Manager.API.Core;
 using Megingjord.Tools.Dialogue_Manager.API.Core.Data;
 using Megingjord.Tools.Dialogue_Manager.API.Exceptions;
@@ -16,6 +17,8 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
 
         public static event UnityAction DialogueExitEvent = delegate { }; 
         public static event UnityAction DialogueEnterEvent = delegate { };
+
+        private static readonly List<DialogueEventConsumer> EventConsumers = new();
 
         public static DialogueManager instance;
         
@@ -67,16 +70,46 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             dialogueUiContainer.SetActive(false);
         }
         
+        /// <summary>
+        /// Register an event consumer
+        /// </summary>
+        /// <param name="eventConsumer">The event consumer to register</param>
+        public static void RegisterEventConsumer(DialogueEventConsumer eventConsumer) {
+            if (EventConsumers.Contains(eventConsumer)) return;
+            EventConsumers.Add(eventConsumer);
+        }
+
+        /// <summary>
+        /// Deregister an event consumer
+        /// </summary>
+        /// <param name="eventConsumer">The event consumer to deregister</param>
+        public static void DeregisterEventConsumer(DialogueEventConsumer eventConsumer) {
+            if (!EventConsumers.Contains(eventConsumer)) return;
+            EventConsumers.Remove(eventConsumer);
+        }
+        
+        /// <summary>
+        /// Cache a dialogue data
+        /// </summary>
+        /// <param name="dialogueData">The dialogue data to cache</param>
         public void AddData(DialogueData dialogueData) {
             if (_dialogueDataCache.Contains(dialogueData)) return;
             _dialogueDataCache.Add(dialogueData);
         }
 
+        /// <summary>
+        /// Remove a dialogue data object from the cache
+        /// </summary>
+        /// <param name="dialogueData">The data to remove</param>
         public void RemoveData(DialogueData dialogueData) {
             if (!_dialogueDataCache.Contains(dialogueData)) return;
             _dialogueDataCache.Remove(dialogueData);
         }
 
+        /// <summary>
+        /// Start a dialogue if one isn't already active
+        /// </summary>
+        /// <param name="server"></param>
         public void StartDialogue(DialogueServer server) {
             if (_dialogueParser != null) {
                 Debug.LogWarning($"An attempt was made to start a new dialogue session when one is already running! {server.dialogueData.name}");
@@ -113,6 +146,9 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             Next();
         }
 
+        /// <summary>
+        /// Stop a dialogue session and clear up any UI and memory
+        /// </summary>
         private void StopDialogue() {
             ClearButtons();
             _dialogueParser = null;
@@ -134,8 +170,16 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             _currentDialogueServer = null;
             _actor = null;
             _cameraStateCache.Clear();
+            
+            DialogueExitEvent.Invoke();
         }
 
+        /// <summary>
+        /// Next node logic loop, based on the option selected if any
+        /// The option defaults to 0 because the option is linked to the
+        /// out port of the node
+        /// </summary>
+        /// <param name="option">The option selected if any</param>
         private void Next(int option = 0) {
             while (true) {
                 ClearButtons();
@@ -170,6 +214,24 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             }
         }
 
+        /// <summary>
+        /// Update the UI based on the current node data
+        ///
+        /// TODO Need to display and actor images and names
+        /// </summary>
+        /// <param name="data">The current node data</param>
+        private void UpdateUI(DialogueNodeData data) {
+            if (_dialogueParser is null) return;
+            textDisplay.text = _dialogueParser.GetText(data);
+            BuildButtons(data);
+            //if (!displayActorNames) return;
+            
+        }
+
+        /// <summary>
+        /// Process the condition node logic
+        /// </summary>
+        /// <param name="data">The condition node data</param>
         private void ProcessConditionNode(ConditionNodeData data) {
             var result = _dialogueParser.CheckCondition(data.variableName);
             if (result == -1) {
@@ -181,14 +243,10 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             Next(result);
         }
 
-        private void UpdateUI(DialogueNodeData data) {
-            if (_dialogueParser is null) return;
-            textDisplay.text = _dialogueParser.GetText(data);
-            BuildButtons(data);
-            //if (!displayActorNames) return;
-            
-        }
-        
+        /// <summary>
+        /// Process the basic node logic
+        /// </summary>
+        /// <param name="data">The basic node data</param>
         private void ProcessBasicNode(BasicNodeData data) {
             if (!focusCameraOnActor || data.choice == IntegerZero) return;
             switch (data.choice) {
@@ -199,6 +257,10 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             }
         }
         
+        /// <summary>
+        /// Process the focus node logic
+        /// </summary>
+        /// <param name="data">The focus node data</param>
         private void ProcessFocusNode(FocusNodeData data) {
             if (!focusCameraOnActor) return;
             switch (data.choice) {
@@ -209,6 +271,10 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             }
         }
 
+        /// <summary>
+        /// Build the button objects based on the current node
+        /// </summary>
+        /// <param name="node">The current active node</param>
         private void BuildButtons(DialogueNodeData node) {
             if (node is ChoiceNodeData choiceNode) {
                 var choices = choiceNode.choices;
@@ -226,13 +292,20 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             }
         }
 
+        /// <summary>
+        /// Destroy each button and clear the cache
+        /// </summary>
         private void ClearButtons() {
             if (_buttonCache.Count <= IntegerZero) return;
             foreach (var button in _buttonCache) {
                 Destroy(button);
             }
+            _buttonCache.Clear();
         }
 
+        /// <summary>
+        /// Focus on the current actor game object
+        /// </summary>
         private void FocusActor() {
             if (_actor == null) {
                 Debug.LogWarning("Actor was null when trying to focus on them.");
@@ -241,49 +314,35 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             dialogueCamera.transform.LookAt(_actor.transform);
         }
 
+        /// <summary>
+        /// Focus on the player game object
+        /// </summary>
         private void FocusPlayer() {
             dialogueCamera.transform.LookAt(player.transform);
         }
 
+        /// <summary>
+        /// Triggers an event of a given name and pushes it to all event subscribers/consumers
+        /// </summary>
+        /// <param name="eventName">The name of the event</param>
         private static void TriggerEvent(string eventName) {
-            var consumers = FindObjectsOfType<MonoBehaviour>().OfType<IDialogueEventConsumer>();
-            foreach (var consumer in consumers) {
-                consumer.ConsumeDialogueEvent(eventName);
+            foreach (var consumer in EventConsumers) {
+                var methods = consumer.GetEventMethods();
+                foreach (var method in methods.Where(method => method.IsMethodForEvent(eventName))) {
+                    method.Invoke(consumer, new object[] {});
+                }
             }
         }
         
-        public static void SetPlayer(GameObject player) {
-            if (player == null) {
-                MWarn.PlayerNotFound.Print();
-            }
-            else instance.player = player;
-        }
-
-        public static void SetProperty(string key, object value) {
-            var candidate = GetDialogueWithProperty(key);
-            SetProperty(candidate, key, value);
-            if (instance._currentDialogueServer == null) return;
-            var active = candidate == instance._currentDialogueServer.dialogueData ? instance._currentDialogueServer.dialogueData : null;
-            if (active == null) return;
-            SetProperty(active, key, value);
-            instance._dialogueParser.UpdateReplacer(key, value);
-        }
-
-        public static int GetIntProperty(string propertyName) {
-            var candidate = GetDialogueWithProperty(propertyName);
-            return candidate.intProperties.First(prop => propertyName.Equals(prop.propertyName)).propertyValue;
-        }
-        
-        public static string GetStringProperty(string propertyName) {
-            var candidate = GetDialogueWithProperty(propertyName);
-            return candidate.stringProperties.First(prop => propertyName.Equals(prop.propertyName)).propertyValue;
-        }
-        
-        public static bool GetBoolProperty(string propertyName) {
-            var candidate = GetDialogueWithProperty(propertyName);
-            return candidate.boolProperties.First(prop => propertyName.Equals(prop.propertyName)).propertyValue;
-        }
-
+        /// <summary>
+        /// Sets a property of a given key to a given value within a dialogue data object
+        /// This is type agnostic and will sort accordingly
+        /// 
+        /// Throws if the property isn't a valid data type for a blackboard property
+        /// </summary>
+        /// <param name="data">The data object to update</param>
+        /// <param name="key">The key or name of the property</param>
+        /// <param name="value">The new value for the property</param>
         private static void SetProperty(DialogueData data, string key, object value) {
             switch (value) {
                 case int intProp:
@@ -313,6 +372,13 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             }
         }
 
+        /// <summary>
+        /// Gets the dialogue data objects that contain a particular property
+        /// 
+        /// TODO stop throwing when multiple data objects are pulled back and update them all together
+        /// </summary>
+        /// <param name="propertyName">The name of the property to find</param>
+        /// <returns></returns>
         private static DialogueData GetDialogueWithProperty(string propertyName) {
             var manager = instance;
             List<DialogueData> candidates = new();
@@ -332,6 +398,62 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
 
             return candidates[0];
         }
+        
+        /// <summary>
+        /// Set the player object
+        /// </summary>
+        /// <param name="player">Player object target</param>
+        public static void SetPlayer(GameObject player) {
+            if (player == null) {
+                MWarn.PlayerNotFound.Print();
+            }
+            else instance.player = player;
+        }
 
+        /// <summary>
+        /// Sets a property of a given name within
+        /// </summary>
+        /// <param name="key">The property key/name</param>
+        /// <param name="value">The value to set</param>
+        public static void SetProperty(string key, object value) {
+            var candidate = GetDialogueWithProperty(key);
+            SetProperty(candidate, key, value);
+            if (instance._currentDialogueServer == null) return;
+            var active = candidate == instance._currentDialogueServer.dialogueData ? instance._currentDialogueServer.dialogueData : null;
+            if (active == null) return;
+            SetProperty(active, key, value);
+            instance._dialogueParser.UpdateReplacer(key, value);
+        }
+
+        /// <summary>
+        /// Gets an integer blackboard property by its key/name
+        /// </summary>
+        /// <param name="propertyKey">The name/key of the property to find</param>
+        /// <returns></returns>
+        public static int GetIntProperty(string propertyKey) {
+            var candidate = GetDialogueWithProperty(propertyKey);
+            return candidate.intProperties.First(prop => propertyKey.Equals(prop.propertyName)).propertyValue;
+        }
+        
+        /// <summary>
+        /// Gets a string blackboard property by its key/name
+        /// </summary>
+        /// <param name="propertyKey">The name/key of the property to find</param>
+        /// <returns></returns>
+        public static string GetStringProperty(string propertyKey) {
+            var candidate = GetDialogueWithProperty(propertyKey);
+            return candidate.stringProperties.First(prop => propertyKey.Equals(prop.propertyName)).propertyValue;
+        }
+        
+        /// <summary>
+        /// Gets a boolean blackboard property by its key/name
+        /// </summary>
+        /// <param name="propertyKey">The name/key of the property to find</param>
+        /// <returns></returns>
+        public static bool GetBoolProperty(string propertyKey) {
+            var candidate = GetDialogueWithProperty(propertyKey);
+            return candidate.boolProperties.First(prop => propertyKey.Equals(prop.propertyName)).propertyValue;
+        }
+        
     }
 }

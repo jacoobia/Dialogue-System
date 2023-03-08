@@ -4,6 +4,11 @@ using UnityEditor;
 namespace Megingjord.Shared {
     public abstract class AssetIO {
         
+        /// <summary>
+        /// Saves a dialogue asset to the assets folder
+        /// </summary>
+        /// <param name="dialogue"></param>
+        /// <param name="fileName"></param>
         public static void SaveDialogueAsset(DialogueData dialogue, string fileName) {
             var loadedAsset =
                 AssetDatabase.LoadAssetAtPath(fileName, typeof(DialogueData)) as DialogueData;

@@ -4,6 +4,10 @@ using Megingjord.Tools.Dialogue_Manager.API.Core.Properties;
 using UnityEngine;
 
 namespace Megingjord.Tools.Dialogue_Manager.API.Core.Data {
+    /// <summary>
+    /// The data container class that holds all of the information
+    /// for a dialogue object
+    /// </summary>
     [Serializable]
     [CreateAssetMenu(fileName = "Dialogue", menuName = "Lonely Dialogue/Dialogue", order = 0)]
     public class DialogueData : ScriptableObject {
@@ -23,6 +27,10 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Core.Data {
         [HideInInspector] public List<StringProperty> stringProperties = new();
         [HideInInspector] public List<BoolProperty> boolProperties = new();
 
+        /// <summary>
+        /// Gets all the dialogue nodes as their superclass 
+        /// </summary>
+        /// <returns></returns>
         public List<DialogueNodeData> GetAllNodes() {
             var nodes = new List<DialogueNodeData> {
                 new() {
@@ -40,6 +48,10 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Core.Data {
             return nodes;
         }
 
+        /// <summary>
+        /// Gets all of the dialogue properties as their superclass
+        /// </summary>
+        /// <returns></returns>
         public List<DialogueProperty> GetAllProperties() {
             var properties = new List<DialogueProperty>();
             properties.AddRange(intProperties);

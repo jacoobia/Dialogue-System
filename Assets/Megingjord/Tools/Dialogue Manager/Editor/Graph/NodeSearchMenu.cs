@@ -16,6 +16,13 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             _graphView = graphView;
         }
         
+        /// <summary>
+        /// Use reflection to get all of the Node base classes and
+        /// create a GUI content for each of them, encapsulate it in
+        /// a SearchTreeGroupEntry and add it to the tree list.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context) {
             var searchTree = new List<SearchTreeEntry> { new SearchTreeGroupEntry(new GUIContent(MenuName)) };
             var nodeTypes = ReflectionUtils.GetNodeTypeDictionary();
@@ -28,8 +35,15 @@ namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph {
             return searchTree;
         }
 
+        /// <summary>
+        /// When an element is selected in the search window,
+        /// Then create a node based on the option selected
+        /// </summary>
+        /// <param name="searchTreeEntry"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public bool OnSelectEntry(SearchTreeEntry searchTreeEntry, SearchWindowContext context) {
-            return _graphView.CreateNodeAtMouse(searchTreeEntry.userData.GetType());
+            return _graphView.TryCreateNode(searchTreeEntry.userData.GetType());
         }
             
     }

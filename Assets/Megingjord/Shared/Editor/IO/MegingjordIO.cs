@@ -3,6 +3,10 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Megingjord.Shared.Editor.IO {
+    /// <summary>
+    /// The shared Megingjord IO utility class for loading and saving
+    /// data used by the tools
+    /// </summary>
     public static class MegingjordIO {
         
         private const string FileExtension = ".msf";

@@ -155,7 +155,7 @@ namespace Megingjord.Tools.Editor.Prefab_History {
                 AddPrefabToWindow(pinnedPrefab);
             }
             
-            EditorComponents.DrawUILine();
+            EditorComponents.DrawUIDivider();
             EditorGUILayout.LabelField("Recent");
             
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true));

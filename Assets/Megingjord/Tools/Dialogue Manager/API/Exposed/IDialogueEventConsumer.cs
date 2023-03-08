@@ -1,14 +1,20 @@
-﻿namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
-    public interface IDialogueEventConsumer {
+﻿using UnityEngine;
 
-        /// <summary>
-        /// Triggered whenever the DialogueManager hits an event node
-        /// and broadcasts the dialogue event
-        /// Every dialogue event will hit this method, so the
-        /// eventTag is for the user to filter to the events required
-        /// </summary>
-        /// <param name="eventTag"></param>
-        void ConsumeDialogueEvent(string eventTag);
+namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
+    /// <summary>
+    /// A base mono behaviour class for any class that plans to consume
+    /// dialogue events
+    /// Self managing with registration
+    /// </summary>
+    public abstract class DialogueEventConsumer : MonoBehaviour {
+        
+        private void Start() {
+            DialogueManager.RegisterEventConsumer(this);
+        }
+
+        private void OnDestroy() {
+            DialogueManager.DeregisterEventConsumer(this);
+        }
 
     }
 }

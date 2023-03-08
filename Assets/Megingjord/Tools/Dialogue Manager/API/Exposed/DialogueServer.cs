@@ -14,7 +14,7 @@ namespace Megingjord.Tools.Dialogue_Manager.API.Exposed {
             DialogueManager.instance.AddData(dialogueData);
         }
 
-        private void OnDisable() {
+        private void OnDestroy() {
             DialogueManager.instance.RemoveData(dialogueData);
         }
 

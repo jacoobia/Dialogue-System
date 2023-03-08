@@ -1,4 +1,5 @@
 ﻿using Megingjord.Shared.Reflection;
+using Megingjord.Shared.Reflection.Attributes;
 using UnityEngine;
 
 namespace Megingjord.Tools.Dialogue_Manager.Editor.Graph.Nodes.Types {

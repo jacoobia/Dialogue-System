@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Megingjord.Shared.Reflection;
+using Megingjord.Shared.Reflection.Attributes;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;

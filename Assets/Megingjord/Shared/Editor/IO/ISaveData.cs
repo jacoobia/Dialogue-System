@@ -1,6 +1,8 @@
 ﻿
 namespace Megingjord.Shared.Editor.IO {
-    public interface ISaveData {
-        
-    }
+    /// <summary>
+    /// Save data interface, only files that extend this interface
+    /// are eligible to be saved
+    /// </summary>
+    public interface ISaveData { }
 }   

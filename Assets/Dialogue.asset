@@ -12,49 +12,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 553c77fe1d5c47afa07e3e41631d53dc, type: 3}
   m_Name: Dialogue
   m_EditorClassIdentifier: 
-  entryGuid: 26c049fd-35c4-4269-bcd0-15c2766b24ec
-  entryNodePosition: {x: 313, y: 306}
+  entryGuid: bf7b5654-d52a-4b9f-acb4-972a73421964
+  entryNodePosition: {x: 352, y: 487}
   basicNodeData:
-  - guid: d08d1362-2b13-427f-8b1d-d4c139adeacd
+  - guid: e5dcdeb6-6e82-4b48-a8ae-59dce6868396
     text: Hello!
-    position: {x: 463, y: 306}
+    position: {x: 485, y: 309}
     choice: 1
-  - guid: 04fc6283-06e5-4ce0-9ad7-8a92a6bd0136
+  - guid: a04ec986-fc3c-42a0-b344-4a7ba1426733
     text: aaaaaaaaaaaah
-    position: {x: 1070, y: 237}
+    position: {x: 890, y: 309}
     choice: 2
   choiceNodeData: []
   eventNodeData: []
   focusNodeData: []
   conditionNodeData:
-  - guid: df7f5b21-a665-4498-b0ed-4d02fd80547b
+  - guid: f470875f-6372-450b-b3e0-4f0b4e890844
     text: 
-    position: {x: 828, y: 306}
+    position: {x: 730, y: 457}
     variableName: test
   exitNodeData:
-  - guid: 871188c0-0207-4948-b7c5-d3aeb257f97f
+  - guid: 034f349d-9067-44fc-8afa-e0abc89e1589
     text: 
-    position: {x: 1460, y: 427}
+    position: {x: 1131, y: 487}
   linkData:
-  - outNodeGuid: 26c049fd-35c4-4269-bcd0-15c2766b24ec
-    inNodeGuid: d08d1362-2b13-427f-8b1d-d4c139adeacd
+  - outNodeGuid: e5dcdeb6-6e82-4b48-a8ae-59dce6868396
+    inNodeGuid: f470875f-6372-450b-b3e0-4f0b4e890844
     portIndex: 0
-  - outNodeGuid: d08d1362-2b13-427f-8b1d-d4c139adeacd
-    inNodeGuid: df7f5b21-a665-4498-b0ed-4d02fd80547b
-    portIndex: 0
-  - outNodeGuid: df7f5b21-a665-4498-b0ed-4d02fd80547b
-    inNodeGuid: 04fc6283-06e5-4ce0-9ad7-8a92a6bd0136
-    portIndex: 0
-  - outNodeGuid: 04fc6283-06e5-4ce0-9ad7-8a92a6bd0136
-    inNodeGuid: 871188c0-0207-4948-b7c5-d3aeb257f97f
-    portIndex: 0
-  - outNodeGuid: df7f5b21-a665-4498-b0ed-4d02fd80547b
-    inNodeGuid: 871188c0-0207-4948-b7c5-d3aeb257f97f
+  - outNodeGuid: f470875f-6372-450b-b3e0-4f0b4e890844
+    inNodeGuid: 034f349d-9067-44fc-8afa-e0abc89e1589
     portIndex: 1
+  - outNodeGuid: a04ec986-fc3c-42a0-b344-4a7ba1426733
+    inNodeGuid: 034f349d-9067-44fc-8afa-e0abc89e1589
+    portIndex: 0
+  - outNodeGuid: f470875f-6372-450b-b3e0-4f0b4e890844
+    inNodeGuid: a04ec986-fc3c-42a0-b344-4a7ba1426733
+    portIndex: 0
+  - outNodeGuid: bf7b5654-d52a-4b9f-acb4-972a73421964
+    inNodeGuid: e5dcdeb6-6e82-4b48-a8ae-59dce6868396
+    portIndex: 0
   firstTimeOpen: 0
   intProperties: []
   stringProperties: []
   boolProperties:
   - guid: 36b16a4f-2cea-49e2-96c4-4aaa8b9acaf0
     propertyName: test
-    propertyValue: 0
+    propertyValue: 1

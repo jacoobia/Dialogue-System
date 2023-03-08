@@ -3,6 +3,10 @@ using UnityEditor;
 using UnityEngine;
 
 namespace Megingjord.Shared.Helpers {
+    /// <summary>
+    /// Warnings and errors for Megingjord and the option to throw,
+    /// show a UI popup or print to the console
+    /// </summary>
     public class MWarn {
         
         private const string ErrorTitle = "Error!";
@@ -17,10 +21,16 @@ namespace Megingjord.Shared.Helpers {
             _scope = scope;
         }
 
+        /// <summary>
+        /// Shows a UI popup/dialogue
+        /// </summary>
         public void Show() {
             EditorUtility.DisplayDialog(_scope == Scope.Error ? ErrorTitle : WarnTitle, _message, Accept);
         }
 
+        /// <summary>
+        /// Prints an error or a warning to the console
+        /// </summary>
         public void Print() {
             if (_scope == Scope.Error) {
                 Debug.LogError(_message);
@@ -29,6 +39,11 @@ namespace Megingjord.Shared.Helpers {
             }
         }
 
+        /// <summary>
+        /// Throws an exception 
+        /// </summary>
+        /// <typeparam name="T">The exception to throw</typeparam>
+        /// <exception cref="T"></exception>
         public void Throw<T>() where T : Exception {
              throw (T)Activator.CreateInstance(typeof(T), _message);
         }

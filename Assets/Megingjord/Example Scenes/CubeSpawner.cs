@@ -1,14 +1,15 @@
+using Megingjord.Shared.Reflection.Attributes;
 using Megingjord.Tools.Dialogue_Manager.API.Exposed;
 using Unity.Mathematics;
 using UnityEngine;
+using DialogueEventConsumer = Megingjord.Tools.Dialogue_Manager.API.Exposed.DialogueEventConsumer;
 using Random = UnityEngine.Random;
 
 namespace Megingjord.Example_Scenes {
-    public class CubeSpawner : MonoBehaviour, IDialogueEventConsumer {
+    public class CubeSpawner : DialogueEventConsumer {
         
         private const string Property = "CUBE_COUNT";
         
-        public string targetDialogueEvent;
         public GameObject prefab;
 
         private Camera _camera;
@@ -17,8 +18,9 @@ namespace Megingjord.Example_Scenes {
             _camera = Camera.main;
         }
 
-        public void ConsumeDialogueEvent(string @event) {
-            if (!@event.Equals(targetDialogueEvent) || _camera == null) return;
+        [DialogueEvent("spawn")]
+        public void ConsumeDialogueEvent() {
+            if (_camera == null) return;
             
             var value = DialogueManager.GetIntProperty(Property);
             DialogueManager.SetProperty(Property, value + 1);
